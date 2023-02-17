@@ -1,0 +1,13 @@
+version: 0.2
+phases:
+  install:
+    runtime-versions:
+      python: 3.7
+  build:
+    commands:
+      - python -m compileall src/app.py
+      - mv src/__pycache__/app.cpython-37.pyc src/app.pyc
+      - rm -rf src/__pycache__
+artifacts:
+  files:
+    - '**/*'

@@ -1,0 +1,26 @@
+version: 0.2
+phases:
+  install: 
+    runtime-versions: 
+      python: 3.7
+      docker: 18
+  pre_build:
+    commands:
+      - echo Logging in to Amazon ECR...
+      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+      - ln -sf /usr/share/zoneinfo/Asia/Seoul /etc/localtime
+  build:
+    commands:
+      - echo Build started on `date`
+      - python -m compileall src/app.py
+      - mv src/__pycache__/app.cpython-37.pyc src/app.pyc
+      - rm -rf src/__pycache__
+      - echo Building the Docker image...
+      - now=$(date +%y%m%d%H%M%S)      
+      - docker build -t $IMAGE_REPO_NAME:$now .
+      - docker tag $IMAGE_REPO_NAME:$now $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$now    
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - echo Pushing the Docker image...
+      - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$now
