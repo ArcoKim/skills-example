@@ -1,0 +1,46 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+ 
+metadata:
+  name: skills-cluster
+  region: ap-northeast-2
+  version: "1.22"
+ 
+vpc:
+  subnets:
+    private:
+      ap-northeast-2a: { id: subnet-0f4b5a00e6964a28a }
+      ap-northeast-2b: { id: subnet-068e698a35a2a139b }
+      ap-northeast-2c: { id: subnet-029daee2df77f203d }
+    
+managedNodeGroups:
+  - name: skills-app
+    instanceType: t3.medium
+    instanceName: eks-workernode-app
+    volumeSize: 20
+    ssh:
+      allow: true
+      publicKeyName: eks-key
+      sourceSecurityGroupIds: [ "sg-0c106c1468c654625" ]
+    minSize: 2
+    desiredCapacity: 2
+    maxSize: 5
+    labels: { skills/dedicated: app }
+    privateNetworking: true
+  - name: skills-addon
+    instanceType: t3.medium
+    instanceName: eks-workernode-addon
+    volumeSize: 20
+    ssh:
+      allow: true
+      publicKeyName: eks-key
+      sourceSecurityGroupIds: [ "sg-0c106c1468c654625" ]
+    minSize: 2
+    desiredCapacity: 2
+    maxSize: 5
+    labels: { skills/dedicated: addon }
+    privateNetworking: true
+
+cloudWatch:
+  clusterLogging:
+    enableTypes: [ "all" ]

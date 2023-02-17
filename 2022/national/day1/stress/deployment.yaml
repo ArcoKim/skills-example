@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stress-deployment
+  namespace: skills
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      skills/version: v1
+  template:
+    metadata:
+      labels:
+        skills/version: v1
+        type: stress
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: skills/dedicated
+                    operator: In
+                    values:
+                    - app
+      containers:
+      - name: stress
+        image: 073813292468.dkr.ecr.ap-northeast-2.amazonaws.com/stress-ecr:latest
+        resources:
+          requests:
+            cpu: 100m
+        ports:
+        - containerPort: 8080
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: stress-svc
+  namespace: skills
+spec:
+  selector:
+    skills/version: v1
+  ports:
+  - port: 80
+    targetPort: 8080
+    protocol: TCP
+  type: NodePort
+---
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: stress-hpa
+  namespace: skills
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: stress-deployment
+  minReplicas: 2
+  maxReplicas: 50
+  targetCPUUtilizationPercentage: 60
