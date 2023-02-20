@@ -1,0 +1,29 @@
+{
+    "executionRoleArn": "arn:aws:iam::073813292468:role/ecsTaskExecutionRole",
+    "containerDefinitions": [
+        {
+            "name": "skills-ecr",
+            "image": "<IMAGE1_NAME>",
+            "essential": true,
+            "portMappings": [
+                {
+                    "hostPort": 0,
+                    "protocol": "tcp",
+                    "containerPort": 80
+                }
+            ],
+            "memory": 512,
+            "healthCheck": {
+                "command": [
+                    "CMD-SHELL",
+                    "curl -f http://localhost/health || exit 1"
+                ]
+            }
+        }
+    ],
+    "requiresCompatibilities": [
+        "EC2"
+    ],
+    "networkMode": "bridge",
+    "family": "skills-td"
+}
